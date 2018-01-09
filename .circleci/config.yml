@@ -1,0 +1,8 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: jupyter/pyspark-notebook
+    steps:
+      - checkout
+      - run: echo "Running copy of jupyter/pyspark-notebook"
