@@ -2,7 +2,7 @@ version: 2
 
 dependencies:
  override:
-  - sudo apt-get update; sudo apt-get install zip -y
+  - sudo apt-get update; sudo apt-get install -y zip curl
   - pip install awscli
 
 jobs:
