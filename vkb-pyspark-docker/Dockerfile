@@ -2,26 +2,32 @@
 # https://github.com/docker-library/official-images/commit/0ea9b38b835ffb656c497783321632ec7f87b60c
 FROM ubuntu@sha256:84c334414e2bfdcae99509a6add166bbb4fa4041dc3fa6af08046a66fed3005f
 
+ARG http_proxy
+ARG https_proxy
+
 # Spark dependencies
-ENV APACHE_SPARK_VERSION 1.6.0 \
-    HADOOP_VERSION 2.7 \
-    DEBIAN_FRONTEND noninteractive \
+ENV APACHE_SPARK_VERSION=1.6.0 \
+    HADOOP_VERSION=2.7 \
+    DEBIAN_FRONTEND=noninteractive \
     CONDA_DIR=/opt/conda \
     SHELL=/bin/bash \
     LC_ALL=en_US.UTF-8 \
     LANG=en_US.UTF-8 \
     LANGUAGE=en_US.UTF-8 \
     PATH=$CONDA_DIR/bin:$PATH \
-    MINICONDA_VERSION 4.3.30 \
-    SPARK_HOME /usr/local/spark \
-    PYTHONPATH $SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.10.4-src.zip \
-    MESOS_NATIVE_LIBRARY /usr/local/lib/libmesos.so \
-    SPARK_OPTS --driver-java-options=-Xms1024M --driver-java-options=-Xmx4096M --driver-java-options=-Dlog4j.logLevel=info
+    MINICONDA_VERSION=4.3.30 \
+    SPARK_HOME=/usr/local/spark \
+    PYTHONPATH=$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.10.4-src.zip \
+    MESOS_NATIVE_LIBRARY=/usr/local/lib/libmesos.so \
+    SPARK_OPTS=--driver-java-options=-Xms1024M --driver-java-options=-Xmx4096M --driver-java-options=-Dlog4j.logLevel=info
 
 # Install all OS dependencies for notebook server that starts but lacks all
 # features (e.g., download as all possible file formats)
-RUN apt-get update && apt-get -yq dist-upgrade \
- && apt-get install -yq --no-install-recommends \
+RUN echo 'Acquire::http::Proxy "'$http_proxy'"/;' > /etc/apt/apt.conf.d/proxy && \
+    echo 'Acquire::https::Proxy "'$https_proxy'"/;' > /etc/apt/apt.conf.d/proxy && \
+    export http_proxy=$http_proxy && export https_proxy=$https_proxy && \
+    apt-get update && apt-get -yq dist-upgrade \
+    && apt-get install -yq --no-install-recommends \
     wget \
     bzip2 \
     ca-certificates \
@@ -52,18 +58,20 @@ RUN cd /tmp && \
     $CONDA_DIR/bin/conda config --system --set auto_update_conda false && \
     $CONDA_DIR/bin/conda config --system --set show_channel_urls true && \
     $CONDA_DIR/bin/conda update --all --quiet --yes && \
-    conda clean -tipsy
+    $CONDA_DIR/bin/conda clean -tipsy
 
 
 RUN apt-get -y update && \
-    apt-get install -y --no-install-recommends openjdk-7-jre-headless && \
+    apt-get install -y --no-install-recommends openjdk-8-jre-headless && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 RUN cd /tmp && \
         wget -q http://d3kbcqa49mib13.cloudfront.net/spark-${APACHE_SPARK_VERSION}-bin-hadoop2.6.tgz && \
-        echo "09f3b50676abc9b3d1895773d18976953ee76945afa72fa57e6473ce4e215970 *spark-${APACHE_SPARK_VERSION}-bin-hadoop2.6.tgz" | sha256sum -c - && \
+        #echo "09f3b50676abc9b3d1895773d18976953ee76945afa72fa57e6473ce4e215970 *spark-${APACHE_SPARK_VERSION}-bin-hadoop2.6.tgz" | sha256sum -c - && \
+        echo "439fe7793e0725492d3d36448adcd1db38f438dd1392bffd556b58bb9a3a2601 *spark-${APACHE_SPARK_VERSION}-bin-hadoop2.6.tgz" | sha256sum -c - && \
         tar xzf spark-${APACHE_SPARK_VERSION}-bin-hadoop2.6.tgz -C /usr/local && \
         rm spark-${APACHE_SPARK_VERSION}-bin-hadoop2.6.tgz
+
 RUN cd /usr/local && ln -s spark-${APACHE_SPARK_VERSION}-bin-hadoop2.6 spark
 
 ENTRYPOINT ["tini", "--"]
