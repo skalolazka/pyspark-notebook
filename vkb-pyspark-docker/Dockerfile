@@ -34,6 +34,7 @@ RUN echo 'Acquire::http::Proxy "'$http_proxy'"/;' > /etc/apt/apt.conf.d/proxy &&
     sudo \
     locales \
     fonts-liberation \
+    python \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
