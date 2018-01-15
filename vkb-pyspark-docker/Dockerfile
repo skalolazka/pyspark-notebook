@@ -15,7 +15,6 @@ ENV APACHE_SPARK_VERSION=1.6.0 \
     LANG=en_US.UTF-8 \
     LANGUAGE=en_US.UTF-8 \
     PATH=$CONDA_DIR/bin:$PATH \
-    MINICONDA_VERSION=4.3.30 \
     SPARK_HOME=/usr/local/spark \
     PYTHONPATH=$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.10.4-src.zip \
     MESOS_NATIVE_LIBRARY=/usr/local/lib/libmesos.so \
@@ -46,21 +45,6 @@ RUN wget --quiet https://github.com/krallin/tini/releases/download/v0.10.0/tini 
     echo "1361527f39190a7338a0b434bd8c88ff7233ce7b9a4876f3315c22fce7eca1b0 *tini" | sha256sum -c - && \
     mv tini /usr/local/bin/tini && \
     chmod +x /usr/local/bin/tini
-
-RUN mkdir -p $CONDA_DIR
-
-# Install conda
-RUN cd /tmp && \
-    wget --quiet https://repo.continuum.io/miniconda/Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh && \
-    echo "0b80a152332a4ce5250f3c09589c7a81 *Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh" | md5sum -c - && \
-    /bin/bash Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh -f -b -p $CONDA_DIR && \
-    rm Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh && \
-    $CONDA_DIR/bin/conda config --system --prepend channels conda-forge && \
-    $CONDA_DIR/bin/conda config --system --set auto_update_conda false && \
-    $CONDA_DIR/bin/conda config --system --set show_channel_urls true && \
-    $CONDA_DIR/bin/conda update --all --quiet --yes && \
-    $CONDA_DIR/bin/conda clean -tipsy
-
 
 RUN apt-get -y update && \
     apt-get install -y --no-install-recommends openjdk-8-jre-headless && \
